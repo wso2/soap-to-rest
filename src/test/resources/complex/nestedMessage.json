@@ -1,0 +1,15 @@
+{
+  "inputModel": {
+    "inner1": {
+      "inner2": {
+        "inner3": {
+          "intA": 0,
+          "intB": 0
+        },
+        "int3": 0
+      },
+      "int2": 0
+    },
+    "int1": 0
+  }
+}
