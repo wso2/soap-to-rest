@@ -45,7 +45,8 @@ class SOAPToRESTConverterTest {
     @Test
     void testURLGetSOAPtoRESTConversionData() throws MalformedURLException, SOAPToRESTException {
 
-        URL url = new URL("http://calculator-webservice.mybluemix.net/calculator?wsdl");
+        URL url = new URL("https://raw.githubusercontent.com/rosensilva/soap-to-rest-1/main/src/test/resources/calculator-remote" +
+                "/calculator.wsdl");
         SOAPtoRESTConversionData soaPtoRESTConversionData = SOAPToRESTConverter.getSOAPtoRESTConversionData(url, "Test API", "1.0.0");
         assertTrue(StringUtils.isNotBlank(soaPtoRESTConversionData.getOASString()));
         assertEquals(soaPtoRESTConversionData.getAllSOAPRequestBodies().size(), 4);
