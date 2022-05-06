@@ -65,7 +65,7 @@ public class OASGenerator {
                         inputModelSchema.addProperties("parameter", inputProp);
                     } else {
                         Schema<?> inputRefProp = new Schema<>();
-                        inputRefProp.setName(inputQName.getQName().getLocalPart());
+                        inputRefProp.setName(inputQName.getQName().getLocalPart().replaceAll("\\s+", ""));
                         inputRefProp.set$ref(SOAPToRESTConstants.OAS_DEFINITIONS_ROOT_ELEMENT_PATH + inputQName.
                                 getQName().getLocalPart());
                         inputModelSchema.addProperties(inputQName.getQName().getLocalPart(), inputRefProp);
@@ -95,8 +95,8 @@ public class OASGenerator {
                         outputModelSchema.addProperties("parameter", outputProp);
                     } else {
                         Schema<?> outputRefProp = new Schema<>();
-                        outputRefProp.setName(outputParamQName.getQName().getLocalPart());
-                        outputRefProp.set$ref(SOAPToRESTConstants.OAS_DEFINITIONS_ROOT_ELEMENT_PATH +
+                        outputRefProp.setName(SOAPToRESTConstants.OAS_DEFINITIONS_ROOT_ELEMENT_PATH + outputParamQName.getQName().getLocalPart().replaceAll("\\s+", ""));
+                        outputRefProp.set$ref(
                                 outputParamQName.getQName().getLocalPart());
                         outputModelSchema.addProperties(outputParamQName.getQName().getLocalPart(), outputRefProp);
                     }
@@ -164,7 +164,7 @@ public class OASGenerator {
                 operation.setHttpVerb(SOAPToRESTConstants.HTTP_METHOD_POST);
                 resourcePath = operationName;
                 resourcePath = resourcePath.substring(0, 1).toLowerCase() + resourcePath.substring(1);
-                operation.setName(resourcePath);
+                operation.setName(resourcePath.replaceAll("\\s+", ""));
                 if (log.isDebugEnabled()) {
                     log.debug("REST resource path for SOAP operation: " + operationName + " is: " + resourcePath);
                 }
@@ -181,14 +181,22 @@ public class OASGenerator {
         for (XSModel xsModel : xsModelList) {
             List<XSDataType> xsDataTypeList = xsModel.getXsDataTypes();
             for (XSDataType xsDataType : xsDataTypeList) {
-                ObjectSchema schema = getSchemaForXSDataType(xsDataType);
+                Schema<?> schema = getSchemaForXSDataType(xsDataType);
                 components.addSchemas(schema.getName(), schema);
             }
+            List<XSGroup> xsDataGroupList = xsModel.getGroups();
+            for (XSGroup xsGroup : xsDataGroupList) {
+                Schema<?> schema = new ObjectSchema();
+                schema.setName(xsGroup.getName().getLocalPart());
+                processXSGroup(xsGroup, schema);
+                components.addSchemas(schema.getName(), schema);
+            }
+
             if (xsModel.getElements().size() > 0) {
                 //Process the elements defined in the root XSD and add 'rootElement_' prefix to identify uniquely
                 for (XSElement xsElement : xsModel.getElements()) {
                     Schema<?> schema = getSchemaForXSElement(xsElement);
-                    schema.setName("rootElement_" + xsElement.getName().getLocalPart());
+                    schema.setName("rootElement_" + xsElement.getName().getLocalPart().replaceAll("\\s+", ""));
                     schema.setType("object");
                     components.addSchemas(schema.getName(), schema);
 
@@ -199,14 +207,24 @@ public class OASGenerator {
         return components;
     }
 
-    private static ObjectSchema getSchemaForXSDataType(XSDataType xsDataType) {
-        ObjectSchema schema = new ObjectSchema();
+    private static Schema<?> getSchemaForXSDataType(XSDataType xsDataType) {
+        Schema<?> schema = new ObjectSchema();
         if (xsDataType.getName() != null) {
-            schema.setName(xsDataType.getName().getLocalPart());
+            schema.setName(xsDataType.getName().getLocalPart().replaceAll("\\s+", ""));
+        } else {
+            schema.setName("Default_Object");
         }
         if (xsDataType.getExtensionBase() != null) {
-            schema.setName(SOAPToRESTConstants.EXTENSION_NAME);
-            schema.set$ref(SOAPToRESTConstants.OAS_DEFINITIONS_PREFIX + xsDataType.getExtensionBase().getLocalPart());
+            schema.addProperties(SOAPToRESTConstants.EXTENSION_NAME, getDataTypesSchema(xsDataType.getExtensionBase()));
+            Map<String, Object> extensionStringObjectMap = new HashMap<>();
+            XML xml = new XML();
+            if (xsDataType.getName() != null && StringUtils.isNotBlank(xsDataType.getName().getNamespaceURI())) {
+                xml.setNamespace(xsDataType.getName().getNamespaceURI());
+                xml.setPrefix(xsDataType.getName().getPrefix());
+            }
+            extensionStringObjectMap.put("x-namespace-qualified", false);
+            schema.setXml(xml);
+            schema.setExtensions(extensionStringObjectMap);
         }
         if (xsDataType.getSequence() != null) {
             processXSSequence(xsDataType.getSequence(), schema);
@@ -289,7 +307,7 @@ public class OASGenerator {
             }
         }
         if (xsGroup.getRefKey() != null) {
-            parentSchema.set$ref(SOAPToRESTConstants.OAS_DEFINITIONS_PREFIX + xsGroup.getRefKey());
+            parentSchema.set$ref(SOAPToRESTConstants.OAS_DEFINITIONS_PREFIX + xsGroup.getRefKey().getLocalPart());
         }
     }
 
@@ -305,10 +323,11 @@ public class OASGenerator {
                 schema = getDataTypesSchema(xsElement.getType());
             }
             if (xsElement.getName() != null) {
-                schema.setName(xsElement.getName().getLocalPart());
+                schema.setName(xsElement.getName().getLocalPart().replaceAll("\\s+", ""));
             }
         } else if (xsElement.getRefKey() != null) {
             schema = new Schema<>();
+            schema.setName(xsElement.getRefKey().getLocalPart().replaceAll("\\s+", ""));
             schema.$ref(SOAPToRESTConstants.OAS_DEFINITIONS_PREFIX + xsElement.getRefKey().getLocalPart());
         } else if (xsElement.getInlineComplexType() != null) {
             schema = getSchemaForXSDataType(xsElement.getInlineComplexType());
@@ -316,7 +335,7 @@ public class OASGenerator {
         return schema;
     }
 
-    private static Schema<?> getDataTypesSchema(QName type) {
+    public static Schema<?> getDataTypesSchema(QName type) {
 
         Schema<?> outputSchema;
         String dataType = type.getLocalPart();

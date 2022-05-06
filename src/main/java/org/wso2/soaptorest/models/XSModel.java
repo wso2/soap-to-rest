@@ -56,6 +56,10 @@ public class XSModel {
         groups.add(group);
     }
 
+    public List<XSGroup> getGroups() {
+        return groups;
+    }
+
     public void setTargetNamespace(String targetNamespace) {
 
         this.targetNamespace = targetNamespace;
