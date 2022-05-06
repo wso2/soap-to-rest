@@ -380,6 +380,7 @@ public class OASGenerator {
             case "boolean":
                 outputSchema = new BooleanSchema();
                 outputSchema.setType("boolean");
+                break;
             case "decimal":
             case "float":
                 outputSchema = new NumberSchema();
