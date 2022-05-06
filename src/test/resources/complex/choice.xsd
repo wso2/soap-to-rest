@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?><!-- Published by JAX-WS RI (http://jax-ws.java.net). RI's version is JAX-WS RI 2.3.2 git-revision#3d0bba4. -->
+<xs:schema xmlns:tns="http://example.com/" xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0"
+           targetNamespace="http://example.com/">
+
+    <xs:element name="inputModel" type="tns:inputModel"/>
+
+    <xs:element name="outputModel" type="tns:outputModel"/>
+
+    <xs:complexType name="inputModel">
+        <xs:sequence>
+            <xs:element name="int1" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="innerType1">
+        <xs:choice>
+            <xs:element name="employee" type="xs:string"/>
+            <xs:element name="member" type="xs:int"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="outputModel">
+        <xs:sequence>
+            <xs:element name="value" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='UTF-8'?><!-- Published by JAX-WS RI (http://jax-ws.java.net). RI's version is JAX-WS RI 2.3.2 git-revision#3d0bba4. -->
+<xs:schema xmlns:tns="http://example.com/" xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0"
+           targetNamespace="http://example.com/">
+
+    <xs:element name="add" type="tns:add"/>
+
+    <xs:element name="addResponse" type="tns:addResponse"/>
+
+    <xs:element name="divide" type="tns:divide"/>
+
+    <xs:element name="divideResponse" type="tns:divideResponse"/>
+
+    <xs:element name="multiply" type="tns:multiply"/>
+
+    <xs:element name="multiplyResponse" type="tns:multiplyResponse"/>
+
+    <xs:element name="subtract" type="tns:subtract"/>
+
+    <xs:element name="subtractResponse" type="tns:subtractResponse"/>
+
+    <xs:complexType name="subtract">
+        <xs:sequence>
+            <xs:element name="intA" type="xs:int"/>
+            <xs:element name="intB" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="subtractResponse">
+        <xs:sequence>
+            <xs:element name="value" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="add">
+        <xs:sequence>
+            <xs:element name="intA" type="xs:int"/>
+            <xs:element name="intB" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="addResponse">
+        <xs:sequence>
+            <xs:element name="value" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="multiply">
+        <xs:sequence>
+            <xs:element name="intA" type="xs:int"/>
+            <xs:element name="intB" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="multiplyResponse">
+        <xs:sequence>
+            <xs:element name="value" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="divide">
+        <xs:sequence>
+            <xs:element name="intA" type="xs:int"/>
+            <xs:element name="intB" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="divideResponse">
+        <xs:sequence>
+            <xs:element name="value" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>
