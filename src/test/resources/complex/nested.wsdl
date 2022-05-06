@@ -7,7 +7,7 @@
     <types>
         <xsd:schema>
             <xsd:import namespace="http://example.com/"
-                        schemaLocation="src/test/resources/complex/nested.xsd"/>
+                        schemaLocation="nested.xsd"/>
         </xsd:schema>
     </types>
     <message name="inputMessage">

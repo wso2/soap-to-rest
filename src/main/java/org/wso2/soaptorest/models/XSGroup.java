@@ -27,6 +27,7 @@ import java.util.List;
 public class XSGroup {
 
     QName refKey;
+    QName name;
     List<XSSequence> sequenceList = new ArrayList<>();
     List<XSChoice> choiceList = new ArrayList<>();
 
@@ -53,5 +54,13 @@ public class XSGroup {
     public void setRefKey(QName refKey) {
 
         this.refKey = refKey;
+    }
+
+    public QName getName() {
+        return name;
+    }
+
+    public void setName(QName name) {
+        this.name = name;
     }
 }

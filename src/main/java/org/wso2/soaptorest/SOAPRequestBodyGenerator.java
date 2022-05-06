@@ -195,7 +195,7 @@ public class SOAPRequestBodyGenerator {
                     Schema<?> schema = openAPI.getComponents().getSchemas().get(parameterTreeNode);
                     if (schema != null) {
                         Map<String, Object> vendorExtensions = schema.getExtensions();
-                        if (vendorExtensions.get(SOAPToRESTConstants.X_NAMESPACE_QUALIFIED) != null
+                        if (vendorExtensions != null && vendorExtensions.get(SOAPToRESTConstants.X_NAMESPACE_QUALIFIED) != null
                                 && Boolean.parseBoolean(vendorExtensions.get(SOAPToRESTConstants.X_NAMESPACE_QUALIFIED).
                                 toString())) {
                             isNamespaceQualified = true;
@@ -257,7 +257,9 @@ public class SOAPRequestBodyGenerator {
                             if (prevElement != null) {
                                 prevElement.appendChild(element);
                             } else {
-                                doc.appendChild(element);
+                                if (element.getLocalName() != null && !StringUtils.contains(element.getLocalName(), "null")) {
+                                    doc.appendChild(element);
+                                }
                             }
                             prevElement = element;
                         }

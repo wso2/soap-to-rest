@@ -7,7 +7,7 @@
     <types>
         <xsd:schema>
             <xsd:import namespace="http://example.com/"
-                        schemaLocation="src/test/resources/complex/groups.xsd"/>
+                        schemaLocation="groups.xsd"/>
         </xsd:schema>
     </types>
     <message name="inputMessage">
