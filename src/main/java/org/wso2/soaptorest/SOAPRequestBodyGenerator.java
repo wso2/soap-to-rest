@@ -265,7 +265,7 @@ public class SOAPRequestBodyGenerator {
                     }
                 }
             }
-            if (parameterJsonPathMapping.size() == 0) {
+            if (parameterJsonPathMapping.isEmpty()) {
                 for (String queryParam : queryPathParamMapping.keySet()) {
                     Element element = doc.createElementNS(namespace,
                             SOAPToRESTConstants.NAMESPACE_PREFIX +
