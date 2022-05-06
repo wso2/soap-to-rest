@@ -167,7 +167,7 @@ public class SOAPRequestBodyGenerator {
             Element rootElement = null;
             if (SOAPToRESTConstants.SOAP_RPC_MESSAGE_TYPE.equalsIgnoreCase(soapMessageType) ||
                     SOAPToRESTConstants.SOAP_RPC_MESSAGE_TYPE.equalsIgnoreCase(soapStyle) ||
-                    parameterJsonPathMapping.size() == 0) {
+                    parameterJsonPathMapping.isEmpty()) {
                 rootElement = doc.createElementNS(namespace,
                         SOAPToRESTConstants.NAMESPACE_PREFIX +
                                 SOAPToRESTConstants.NAMESPACE_SEPARATOR + operationId);
