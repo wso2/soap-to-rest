@@ -61,7 +61,7 @@ public class SOAPToRESTConstants {
     //OAS Generator Constants
     public static final String OAS_DEFINITIONS_PREFIX = "#/components/schemas/";
     public static final String OAS_DEFINITIONS_ROOT_ELEMENT_PATH = "#/components/schemas/rootElement_";
-    public static final String EXTENSION_NAME = "Extension Object";
+    public static final String EXTENSION_NAME = "ExtensionObject";
     public static final String OAS_ALL_MEDIA_TYPE = "*/*";
 
 

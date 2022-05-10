@@ -6,7 +6,7 @@
         targetNamespace="http://example.com/" name="CalculatorService">
     <types>
         <xsd:schema>
-            <xsd:import namespace="http://example.com/" schemaLocation="src/test/resources/calculator/calculator.xsd"/>
+            <xsd:import namespace="http://example.com/" schemaLocation="calculator.xsd"/>
         </xsd:schema>
     </types>
     <message name="subtract">

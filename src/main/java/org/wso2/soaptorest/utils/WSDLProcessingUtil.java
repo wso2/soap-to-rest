@@ -80,14 +80,14 @@ public class WSDLProcessingUtil {
      * @return an "XXE safe" built DOM XML object by reading the content from the provided file path
      * @throws SOAPToRESTException When error occurred while reading from file path
      */
-    public static Document getSecuredParsedDocumentFromPath(String path) throws SOAPToRESTException, IOException {
+    public static Document getSecuredParsedDocumentFromPath(String path, String systemId) throws SOAPToRESTException, IOException {
 
         InputStream inputStream = null;
         try {
             DocumentBuilderFactory factory = getSecuredDocumentBuilder();
             DocumentBuilder builder = factory.newDocumentBuilder();
             inputStream = new FileInputStream(path);
-            return builder.parse(inputStream);
+            return builder.parse(inputStream, systemId);
         } catch (ParserConfigurationException | IOException | SAXException e) {
             throw new SOAPToRESTException("Error while reading WSDL document", e);
         } finally {
@@ -121,7 +121,7 @@ public class WSDLProcessingUtil {
      * @param wsdlDefinition input WSDL definition
      * @return returns Set of {@link XmlSchema} objects of all the referred XSDs of the WSDL file
      */
-    public static Set<XmlSchema> getXMLSchemasFromWSDL(Definition wsdlDefinition) {
+    public static Set<XmlSchema> getXMLSchemasFromWSDL(Definition wsdlDefinition, String systemId) {
 
         Set<XmlSchema> schemaArrayList = new HashSet<>();
         Types types = wsdlDefinition.getTypes();
@@ -134,7 +134,7 @@ public class WSDLProcessingUtil {
                 if (ext instanceof Schema) {
                     Schema schema = (Schema) ext;
                     XmlSchemaCollection schemaCollection = new XmlSchemaCollection();
-                    schemaArrayList.add(schemaCollection.read(schema.getElement()));
+                    schemaArrayList.add(schemaCollection.read(schema.getElement(), systemId));
                     // Process imported XSDs if available
                     Map<?, ?> importedSchemas = schema.getImports();
                     if (importedSchemas != null) {
@@ -160,11 +160,16 @@ public class WSDLProcessingUtil {
                     if (schemaVector instanceof SchemaImport) {
                         Schema referencedSchema = ((SchemaImport) schemaVector).getReferencedSchema();
                         if (referencedSchema != null && referencedSchema.getElement() != null) {
+                            String systemId = referencedSchema.getDocumentBaseURI();
                             XmlSchemaCollection schemaCollection = new XmlSchemaCollection();
-                            schemaArrayList.add(schemaCollection.read(referencedSchema.getElement()));
+                            schemaArrayList.add(schemaCollection.read(referencedSchema.getElement(), systemId));
                             Map<?, ?> nestedImportedSchemas = referencedSchema.getImports();
                             if (nestedImportedSchemas != null) {
                                 processImportedSchemas(nestedImportedSchemas, schemaArrayList);
+                            }
+                            List<?> nestedSchemaIncludes = referencedSchema.getIncludes();
+                            if (nestedSchemaIncludes != null) {
+                                processIncludedSchemas(nestedSchemaIncludes, schemaArrayList);
                             }
                         } else {
                             log.warn("Cannot access referenced schema for the schema defined at: " + schemaUrl);
@@ -178,12 +183,13 @@ public class WSDLProcessingUtil {
     private static void processIncludedSchemas(List<?> schemaIncludes, Set<XmlSchema> schemaArrayList) {
 
         for (Object includedSchemaRef : schemaIncludes) {
-
             if (includedSchemaRef instanceof SchemaReferenceImpl) {
                 Schema referencedSchema = ((SchemaReferenceImpl) includedSchemaRef).getReferencedSchema();
+
                 if (referencedSchema != null && referencedSchema.getElement() != null) {
+                    String systemId = referencedSchema.getDocumentBaseURI();
                     XmlSchemaCollection schemaCollection = new XmlSchemaCollection();
-                    schemaArrayList.add(schemaCollection.read(referencedSchema.getElement()));
+                    schemaArrayList.add(schemaCollection.read(referencedSchema.getElement(), systemId));
                     Map<?, ?> nestedImportedSchemas = referencedSchema.getImports();
                     if (nestedImportedSchemas != null) {
                         processImportedSchemas(nestedImportedSchemas, schemaArrayList);

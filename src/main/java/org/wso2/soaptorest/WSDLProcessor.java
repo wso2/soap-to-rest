@@ -28,6 +28,8 @@ import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
+import javax.xml.namespace.QName;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -78,8 +80,12 @@ public class WSDLProcessor {
         wsdlReader.setFeature(JAVAX_WSDL_VERBOSE_MODE, false);
         wsdlReader.setFeature(JAVAX_WSDL_IMPORT_DOCUMENTS, false);
         try {
-            wsdlDefinition = wsdlReader.readWSDL(null, WSDLProcessingUtil.getSecuredParsedDocumentFromPath(path));
-            initializeModels(wsdlDefinition);
+            String systemId = "";
+            if (path.lastIndexOf(File.separator) > 0) {
+                systemId = path.substring(0, path.lastIndexOf(File.separator));
+            }
+            wsdlDefinition = wsdlReader.readWSDL(systemId, WSDLProcessingUtil.getSecuredParsedDocumentFromPath(path, systemId));
+            initializeModels(wsdlDefinition, systemId);
             if (log.isDebugEnabled()) {
                 log.debug("Successfully initialized the WSDL File from given path");
             }
@@ -106,7 +112,7 @@ public class WSDLProcessor {
         try {
             wsdlDefinition = wsdlReader.readWSDL(url.toString(),
                     WSDLProcessingUtil.getSecuredParsedDocumentFromURL(url));
-            initializeModels(wsdlDefinition);
+            initializeModels(wsdlDefinition, null);
             if (log.isDebugEnabled()) {
                 log.debug("Successfully initialized the WSDL File from given URL");
             }
@@ -122,9 +128,9 @@ public class WSDLProcessor {
      *
      * @param wsdlDefinition input WSDL definition
      */
-    public void initializeModels(Definition wsdlDefinition) {
+    public void initializeModels(Definition wsdlDefinition, String systemId) {
 
-        wsdlSchemaList = WSDLProcessingUtil.getXMLSchemasFromWSDL(wsdlDefinition);
+        wsdlSchemaList = WSDLProcessingUtil.getXMLSchemasFromWSDL(wsdlDefinition, systemId);
         for (XmlSchema xmlSchema : wsdlSchemaList) {
             // Process single XSD Schema file from the available schema list
             XSModel xsModel = new XSModel();
@@ -158,6 +164,7 @@ public class WSDLProcessor {
                 Object schemaGroupObject = groupIterator.next();
                 if (schemaGroupObject instanceof XmlSchemaGroup) {
                     XmlSchemaGroup xmlSchemaGroup = (XmlSchemaGroup) schemaGroupObject;
+                    xsGroup.setName(xmlSchemaGroup.getName());
                     int numOfGroupElements = xmlSchemaGroup.getParticle().getItems().getCount();
                     for (int i = 0; i < numOfGroupElements; i++) {
                         XmlSchemaObject xmlSchemaObject = xmlSchemaGroup.getParticle().getItems().getItem(i);
@@ -267,6 +274,15 @@ public class WSDLProcessor {
                 xsGroup.setRefKey(xmlSchemaGroupRef.getRefName());
                 xsDataType.setGroup(xsGroup);
             }
+        }
+
+        if (xmlSchemaType instanceof XmlSchemaSimpleType) {
+            XSSequence xsSequence = new XSSequence();
+            XSElement xsElement = new XSElement();
+            xsElement.setName(new QName("SimpleType"));
+            xsElement.setType(new QName("string"));
+            xsSequence.addElement(xsElement);
+            xsDataType.setSequence(xsSequence);
         }
         return xsDataType;
     }

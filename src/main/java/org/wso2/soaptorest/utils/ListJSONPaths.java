@@ -17,6 +17,7 @@
  */
 package org.wso2.soaptorest.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -48,18 +49,22 @@ public class ListJSONPaths {
 
         Iterator<?> keysItr = object.keys();
         String parentPath = jsonPath;
-        while (keysItr.hasNext()) {
-            String key = (String) keysItr.next();
-            Object value = object.get(key);
-            jsonPath = (jsonPath == null) ? key : parentPath + "." + key;
+        if (keysItr.hasNext()) {
+            while (keysItr.hasNext()) {
+                String key = (String) keysItr.next();
+                Object value = object.get(key);
+                jsonPath = (jsonPath == null) ? key : parentPath + "." + key;
 
-            if (value instanceof JSONArray) {
-                readArray((JSONArray) value, jsonPath, pathList);
-            } else if (value instanceof JSONObject) {
-                readObject((JSONObject) value, jsonPath, pathList);
-            } else {
-                pathList.add(jsonPath);
+                if (value instanceof JSONArray) {
+                    readArray((JSONArray) value, jsonPath, pathList);
+                } else if (value instanceof JSONObject) {
+                    readObject((JSONObject) value, jsonPath, pathList);
+                } else {
+                    pathList.add(jsonPath);
+                }
             }
+        } else if (StringUtils.isNotBlank(jsonPath)) {
+            pathList.add(jsonPath);
         }
     }
 
