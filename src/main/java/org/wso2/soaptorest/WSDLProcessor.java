@@ -277,10 +277,23 @@ public class WSDLProcessor {
         }
 
         if (xmlSchemaType instanceof XmlSchemaSimpleType) {
+            XmlSchemaSimpleType xmlSchemaTypeObject = (XmlSchemaSimpleType) xmlSchemaType;
             XSSequence xsSequence = new XSSequence();
             XSElement xsElement = new XSElement();
-            xsElement.setName(new QName("SimpleType"));
-            xsElement.setType(new QName("string"));
+            xsElement.setName(xmlSchemaTypeObject.getQName());
+            if (xmlSchemaTypeObject.getBaseSchemaTypeName() != null) {
+                xsElement.setType(xmlSchemaTypeObject.getBaseSchemaTypeName());
+            } else if (xmlSchemaTypeObject.getContent() != null) {
+                if (xmlSchemaTypeObject.getContent() instanceof XmlSchemaSimpleTypeRestriction) {
+                    XmlSchemaSimpleTypeRestriction xmlSchemaSimpleTypeRestriction =
+                            (XmlSchemaSimpleTypeRestriction) xmlSchemaTypeObject.getContent();
+                    xsElement.setType(xmlSchemaSimpleTypeRestriction.getBaseTypeName());
+                }
+            }
+            if (xsElement.getType() == null) {
+                xsElement.setType(new QName("string"));
+
+            }
             xsSequence.addElement(xsElement);
             xsDataType.setSequence(xsSequence);
         }
