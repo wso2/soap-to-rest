@@ -29,6 +29,7 @@ public class XSDataType {
     XSSequence xsSequence;
     XSChoice xsChoice;
     XSGroup xsGroup;
+    boolean isSimpleType = false;
 
     public QName getName() {
 
@@ -78,5 +79,13 @@ public class XSDataType {
     public void setExtensionBase(QName extensionBase) {
 
         this.extensionBase = extensionBase;
+    }
+
+    public boolean isSimpleType() {
+        return isSimpleType;
+    }
+
+    public void setSimpleType(boolean simpleType) {
+        isSimpleType = simpleType;
     }
 }

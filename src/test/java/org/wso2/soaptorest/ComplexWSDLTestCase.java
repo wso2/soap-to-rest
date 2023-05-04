@@ -71,7 +71,7 @@ class ComplexWSDLTestCase {
             transformer.transform(new DOMSource(soapRequestElement.getSoapRequestBody()),
                     new StreamResult(writer));
             String soapPayload = writer.getBuffer().toString();
-            String complexInnerType = "<inner3 xmlns=\"\" ARRAY_PLACEHOLDER=\"inner1.inner2.inner3\">";
+            String complexInnerType = "<inner3 ARRAY_PLACEHOLDER=\"inner1.inner2.inner3\">";
             assertTrue(soapPayload.contains(complexInnerType));
             assertEquals("http://example.com/", soapRequestElement.getNamespace());
             assertEquals("http://schemas.xmlsoap.org/soap/envelope/", soapRequestElement.getSoapNamespace());

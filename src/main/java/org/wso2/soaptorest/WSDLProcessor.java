@@ -296,6 +296,7 @@ public class WSDLProcessor {
             }
             xsSequence.addElement(xsElement);
             xsDataType.setSequence(xsSequence);
+            xsDataType.setSimpleType(true);
         }
         return xsDataType;
     }
