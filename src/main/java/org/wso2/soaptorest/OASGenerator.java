@@ -208,41 +208,50 @@ public class OASGenerator {
     }
 
     private static Schema<?> getSchemaForXSDataType(XSDataType xsDataType) {
-        Schema<?> schema = new ObjectSchema();
+        String schemaName;
+        Schema<?> schema;
         if (xsDataType.getName() != null) {
-            schema.setName(xsDataType.getName().getLocalPart().replaceAll("\\s+", ""));
+            schemaName = xsDataType.getName().getLocalPart().replaceAll("\\s+", "");
         } else {
-            schema.setName("Default_Object");
+            schemaName = "Default_Object";
         }
-        if (xsDataType.getExtensionBase() != null) {
-            schema.addProperties(SOAPToRESTConstants.EXTENSION_NAME, getDataTypesSchema(xsDataType.getExtensionBase()));
-            Map<String, Object> extensionStringObjectMap = new HashMap<>();
-            XML xml = new XML();
-            if (xsDataType.getName() != null && StringUtils.isNotBlank(xsDataType.getName().getNamespaceURI())) {
-                xml.setNamespace(xsDataType.getName().getNamespaceURI());
-                xml.setPrefix(xsDataType.getName().getPrefix());
+        if (xsDataType.isSimpleType()) {
+            schema = new StringSchema();
+            schema.setName(schemaName);
+            schema.setType("string");
+        } else {
+            schema = new ObjectSchema();
+            schema.setName(schemaName);
+            if (xsDataType.getExtensionBase() != null) {
+                schema.addProperties(SOAPToRESTConstants.EXTENSION_NAME, getDataTypesSchema(xsDataType.getExtensionBase()));
+                Map<String, Object> extensionStringObjectMap = new HashMap<>();
+                XML xml = new XML();
+                if (xsDataType.getName() != null && StringUtils.isNotBlank(xsDataType.getName().getNamespaceURI())) {
+                    xml.setNamespace(xsDataType.getName().getNamespaceURI());
+                    xml.setPrefix(xsDataType.getName().getPrefix());
+                }
+                extensionStringObjectMap.put("x-namespace-qualified", false);
+                schema.setXml(xml);
+                schema.setExtensions(extensionStringObjectMap);
             }
-            extensionStringObjectMap.put("x-namespace-qualified", false);
-            schema.setXml(xml);
-            schema.setExtensions(extensionStringObjectMap);
-        }
-        if (xsDataType.getSequence() != null) {
-            processXSSequence(xsDataType.getSequence(), schema);
-            Map<String, Object> extensionStringObjectMap = new HashMap<>();
-            XML xml = new XML();
-            if (xsDataType.getName() != null && StringUtils.isNotBlank(xsDataType.getName().getNamespaceURI())) {
-                xml.setNamespace(xsDataType.getName().getNamespaceURI());
-                xml.setPrefix(xsDataType.getName().getPrefix());
+            if (xsDataType.getSequence() != null) {
+                processXSSequence(xsDataType.getSequence(), schema);
+                Map<String, Object> extensionStringObjectMap = new HashMap<>();
+                XML xml = new XML();
+                if (xsDataType.getName() != null && StringUtils.isNotBlank(xsDataType.getName().getNamespaceURI())) {
+                    xml.setNamespace(xsDataType.getName().getNamespaceURI());
+                    xml.setPrefix(xsDataType.getName().getPrefix());
+                }
+                extensionStringObjectMap.put("x-namespace-qualified", false);
+                schema.setXml(xml);
+                schema.setExtensions(extensionStringObjectMap);
             }
-            extensionStringObjectMap.put("x-namespace-qualified", false);
-            schema.setXml(xml);
-            schema.setExtensions(extensionStringObjectMap);
-        }
-        if (xsDataType.getChoice() != null) {
-            processXSChoice(xsDataType.getChoice(), schema);
-        }
-        if (xsDataType.getGroup() != null) {
-            processXSGroup(xsDataType.getGroup(), schema);
+            if (xsDataType.getChoice() != null) {
+                processXSChoice(xsDataType.getChoice(), schema);
+            }
+            if (xsDataType.getGroup() != null) {
+                processXSGroup(xsDataType.getGroup(), schema);
+            }
         }
         return schema;
     }
@@ -253,7 +262,9 @@ public class OASGenerator {
             List<XSElement> xsElementList = xsSequence.getElementList();
             for (XSElement xsElement : xsElementList) {
                 Schema<?> innerSchema = getSchemaForXSElement(xsElement);
-                parentSchema.addProperties(innerSchema.getName(), innerSchema);
+                if (innerSchema != null) {
+                    parentSchema.addProperties(innerSchema.getName(), innerSchema);
+                }
             }
         }
         if (xsSequence.getSequenceList() != null) {

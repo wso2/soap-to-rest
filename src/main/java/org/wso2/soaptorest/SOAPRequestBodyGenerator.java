@@ -131,10 +131,7 @@ public class SOAPRequestBodyGenerator {
                                 operation.getRequestBody().getContent().get(SOAPToRESTConstants.
                                         DEFAULT_CONTENT_TYPE).getSchema();
                         Example example = ExampleBuilder.fromSchema(model, openAPI.getComponents().getSchemas());
-                        String jsonExample = Json.pretty(example);
-                        if (jsonExample != null && !"null".equals(jsonExample)) {
-                            parameterJsonPathMapping = ListJSONPaths.getJsonPaths(jsonExample);
-                        }
+                        parameterJsonPathMapping = ListJSONPaths.getJsonPathsFromExample(example);
                     } catch (Exception e) {
                         throw new SOAPToRESTException("Cannot generate JSON body from the OpenAPI", e);
                     }
@@ -224,9 +221,7 @@ public class SOAPRequestBodyGenerator {
                                             SOAPToRESTConstants.NAMESPACE_SEPARATOR + parameterTreeNode);
                             isRootComplexType = false;
                         } else {
-                            element = doc.createElementNS(null, parameterTreeNode);
-                            element.setAttribute(SOAPToRESTConstants.XMLNS,
-                                    SOAPToRESTConstants.X_WSO2_UNIQUE_NAMESPACE);
+                            element = doc.createElement( parameterTreeNode);
                         }
                         if (isArray) {
                             element.setAttribute(SOAPToRESTConstants.ARRAY_PLACEHOLDER,

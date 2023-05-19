@@ -63,6 +63,6 @@ public class SOAPToRESTConstants {
     public static final String OAS_DEFINITIONS_ROOT_ELEMENT_PATH = "#/components/schemas/rootElement_";
     public static final String EXTENSION_NAME = "ExtensionObject";
     public static final String OAS_ALL_MEDIA_TYPE = "*/*";
-
-
+    public static final String OBJECT_TYPE = "object";
+    public static final String ARRAY_TYPE = "array";
 }
