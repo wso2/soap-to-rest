@@ -97,7 +97,7 @@ public class OASGenerator {
                         Schema<?> outputRefProp = new Schema<>();
                         outputRefProp.setName(SOAPToRESTConstants.OAS_DEFINITIONS_ROOT_ELEMENT_PATH + outputParamQName.getQName().getLocalPart().replaceAll("\\s+", ""));
                         outputRefProp.set$ref(
-                                outputParamQName.getQName().getLocalPart());
+                                SOAPToRESTConstants.OAS_DEFINITIONS_ROOT_ELEMENT_PATH + outputParamQName.getQName().getLocalPart());
                         outputModelSchema.addProperties(outputParamQName.getQName().getLocalPart(), outputRefProp);
                     }
                 }
