@@ -181,7 +181,7 @@ public class OASGenerator {
         for (XSModel xsModel : xsModelList) {
             List<XSDataType> xsDataTypeList = xsModel.getXsDataTypes();
             for (XSDataType xsDataType : xsDataTypeList) {
-                Schema<?> schema = getSchemaForXSDataType(xsDataType);
+                Schema<?> schema = getSchemaForXSDataType(xsDataType, null);
                 components.addSchemas(schema.getName(), schema);
             }
             List<XSGroup> xsDataGroupList = xsModel.getGroups();
@@ -207,11 +207,13 @@ public class OASGenerator {
         return components;
     }
 
-    private static Schema<?> getSchemaForXSDataType(XSDataType xsDataType) {
+    private static Schema<?> getSchemaForXSDataType(XSDataType xsDataType, String parentName) {
         String schemaName;
         Schema<?> schema;
         if (xsDataType.getName() != null) {
             schemaName = xsDataType.getName().getLocalPart().replaceAll("\\s+", "");
+        } else if (parentName != null) {
+            schemaName = parentName;
         } else {
             schemaName = "Default_Object";
         }
@@ -341,7 +343,7 @@ public class OASGenerator {
             schema.setName(xsElement.getRefKey().getLocalPart().replaceAll("\\s+", ""));
             schema.$ref(SOAPToRESTConstants.OAS_DEFINITIONS_PREFIX + xsElement.getRefKey().getLocalPart());
         } else if (xsElement.getInlineComplexType() != null) {
-            schema = getSchemaForXSDataType(xsElement.getInlineComplexType());
+            schema = getSchemaForXSDataType(xsElement.getInlineComplexType(), xsElement.getName().getLocalPart().replaceAll("\\s+", ""));
         }
         return schema;
     }
