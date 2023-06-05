@@ -183,8 +183,8 @@ public class SOAPRequestBodyGenerator {
                 for (int i = 0; i < length; i++) {
                     String parameterTreeNode = parameterTreeNodes[i];
                     boolean isArray = false;
-                    currentJSONPath = currentJSONPath.isEmpty() ? parameterTreeNode :
-                            currentJSONPath + "." + parameterTreeNode;
+                    currentJSONPath = currentJSONPath.isEmpty() ? escapeFreeMarkerTemplate(parameterTreeNode) :
+                            currentJSONPath + "." + escapeFreeMarkerTemplate(parameterTreeNode);
                     if (parameterTreeNode.endsWith("[0]")) {
                         isArray = true;
                         parameterTreeNode = parameterTreeNode.replace("[0]", "");
@@ -226,7 +226,7 @@ public class SOAPRequestBodyGenerator {
                         if (isArray) {
                             element.setAttribute(SOAPToRESTConstants.ARRAY_PLACEHOLDER,
                                     currentJSONPath.replace("[0]", ""));
-                            currentJSONPath = parameterTreeNode;
+                            currentJSONPath = escapeFreeMarkerTemplate(parameterTreeNode);
                         }
 
                         String xPathOfNode = StringUtils.EMPTY;
@@ -303,4 +303,16 @@ public class SOAPRequestBodyGenerator {
         return SOAPToRESTConstants.EMPTY_STRING;
     }
 
+    /**
+     * Escape the FreeMarker template. Since FreeMarker 2.3.22 the variable name can also contain minus (-), dot (.)
+     * , and colon (:) at any position, but these must be escaped with a preceding backslash (\)
+     *
+     * @param template free marker template
+     * @return escaped template
+     */
+    private static String escapeFreeMarkerTemplate(String template) {
+
+        return template.replace("-", "\\-").replace(".", "\\.")
+                .replace(":", "\\:");
+    }
 }
