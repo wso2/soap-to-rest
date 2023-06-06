@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.soaptorest.exceptions.SOAPToRESTException;
 import org.wso2.soaptorest.models.*;
+import org.wso2.soaptorest.utils.SOAPToRESTConstants;
 import org.wso2.soaptorest.utils.WSDLProcessingUtil;
 
 import javax.wsdl.Definition;
@@ -135,6 +136,8 @@ public class WSDLProcessor {
             // Process single XSD Schema file from the available schema list
             XSModel xsModel = new XSModel();
             xsModel.setTargetNamespace(xmlSchema.getTargetNamespace());
+            xsModel.setElementFormDefaultQualified(
+                    SOAPToRESTConstants.QUALIFIED.equals(xmlSchema.getElementFormDefault().getValue()));
 
             //Process Elements in the XSD
             Iterator<?> elementsIterator = xmlSchema.getElements().getValues();

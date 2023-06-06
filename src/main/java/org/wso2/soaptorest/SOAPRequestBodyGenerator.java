@@ -183,13 +183,19 @@ public class SOAPRequestBodyGenerator {
                 for (int i = 0; i < length; i++) {
                     String parameterTreeNode = parameterTreeNodes[i];
                     boolean isArray = false;
-                    currentJSONPath = currentJSONPath.isEmpty() ? parameterTreeNode :
-                            currentJSONPath + "." + parameterTreeNode;
+                    currentJSONPath = currentJSONPath.isEmpty() ? escapeFreeMarkerTemplate(parameterTreeNode) :
+                            currentJSONPath + "." + escapeFreeMarkerTemplate(parameterTreeNode);
                     if (parameterTreeNode.endsWith("[0]")) {
                         isArray = true;
                         parameterTreeNode = parameterTreeNode.replace("[0]", "");
                     }
                     Schema<?> schema = openAPI.getComponents().getSchemas().get(parameterTreeNode);
+                    // Since we add the elements defined in the root XSD with the 'rootElement_' prefix, we need to
+                    // check for the schema with the prefix if the schema is not found.
+                    if (schema == null) {
+                        schema = openAPI.getComponents().getSchemas()
+                                .get(SOAPToRESTConstants.ROOT_ELEMENT_PREFIX + parameterTreeNode);
+                    }
                     if (schema != null) {
                         Map<String, Object> vendorExtensions = schema.getExtensions();
                         if (vendorExtensions != null && vendorExtensions.get(SOAPToRESTConstants.X_NAMESPACE_QUALIFIED) != null
@@ -226,7 +232,7 @@ public class SOAPRequestBodyGenerator {
                         if (isArray) {
                             element.setAttribute(SOAPToRESTConstants.ARRAY_PLACEHOLDER,
                                     currentJSONPath.replace("[0]", ""));
-                            currentJSONPath = parameterTreeNode;
+                            currentJSONPath = escapeFreeMarkerTemplate(parameterTreeNode);
                         }
 
                         String xPathOfNode = StringUtils.EMPTY;
@@ -303,4 +309,16 @@ public class SOAPRequestBodyGenerator {
         return SOAPToRESTConstants.EMPTY_STRING;
     }
 
+    /**
+     * Escape the FreeMarker template. Since FreeMarker 2.3.22 the variable name can also contain minus (-), dot (.)
+     * , and colon (:) at any position, but these must be escaped with a preceding backslash (\)
+     *
+     * @param template free marker template
+     * @return escaped template
+     */
+    private static String escapeFreeMarkerTemplate(String template) {
+
+        return template.replace("-", "\\-").replace(".", "\\.")
+                .replace(":", "\\:");
+    }
 }

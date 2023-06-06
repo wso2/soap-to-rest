@@ -31,6 +31,8 @@ public class XSModel {
     List<XSGroup> groups = new ArrayList<>();
     String targetNamespace;
 
+    private boolean elementFormDefaultQualified = false;
+
     public void addElement(XSElement element) {
 
         elements.add(element);
@@ -69,4 +71,13 @@ public class XSModel {
         return elements;
     }
 
+    public boolean isElementFormDefaultQualified() {
+
+        return elementFormDefaultQualified;
+    }
+
+    public void setElementFormDefaultQualified(boolean elementFormDefaultQualified) {
+
+        this.elementFormDefaultQualified = elementFormDefaultQualified;
+    }
 }
