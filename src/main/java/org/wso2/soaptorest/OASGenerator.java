@@ -181,21 +181,21 @@ public class OASGenerator {
         for (XSModel xsModel : xsModelList) {
             List<XSDataType> xsDataTypeList = xsModel.getXsDataTypes();
             for (XSDataType xsDataType : xsDataTypeList) {
-                Schema<?> schema = getSchemaForXSDataType(xsDataType, null);
+                Schema<?> schema = getSchemaForXSDataType(xsDataType, null, xsModel.isElementFormDefaultQualified());
                 components.addSchemas(schema.getName(), schema);
             }
             List<XSGroup> xsDataGroupList = xsModel.getGroups();
             for (XSGroup xsGroup : xsDataGroupList) {
                 Schema<?> schema = new ObjectSchema();
                 schema.setName(xsGroup.getName().getLocalPart());
-                processXSGroup(xsGroup, schema);
+                processXSGroup(xsGroup, schema, xsModel.isElementFormDefaultQualified());
                 components.addSchemas(schema.getName(), schema);
             }
 
             if (xsModel.getElements().size() > 0) {
                 //Process the elements defined in the root XSD and add 'rootElement_' prefix to identify uniquely
                 for (XSElement xsElement : xsModel.getElements()) {
-                    Schema<?> schema = getSchemaForXSElement(xsElement);
+                    Schema<?> schema = getSchemaForXSElement(xsElement, xsModel.isElementFormDefaultQualified());
                     schema.setName("rootElement_" + xsElement.getName().getLocalPart().replaceAll("\\s+", ""));
                     schema.setType("object");
                     components.addSchemas(schema.getName(), schema);
@@ -207,7 +207,7 @@ public class OASGenerator {
         return components;
     }
 
-    private static Schema<?> getSchemaForXSDataType(XSDataType xsDataType, String parentName) {
+    private static Schema<?> getSchemaForXSDataType(XSDataType xsDataType, String parentName, boolean isElementFormDefaultQualified) {
         String schemaName;
         Schema<?> schema;
         if (xsDataType.getName() != null) {
@@ -232,38 +232,38 @@ public class OASGenerator {
                     xml.setNamespace(xsDataType.getName().getNamespaceURI());
                     xml.setPrefix(xsDataType.getName().getPrefix());
                 }
-                extensionStringObjectMap.put("x-namespace-qualified", false);
+                extensionStringObjectMap.put(SOAPToRESTConstants.X_NAMESPACE_QUALIFIED, isElementFormDefaultQualified);
                 schema.setXml(xml);
                 schema.setExtensions(extensionStringObjectMap);
             }
             if (xsDataType.getSequence() != null) {
-                processXSSequence(xsDataType.getSequence(), schema);
+                processXSSequence(xsDataType.getSequence(), schema, isElementFormDefaultQualified);
                 Map<String, Object> extensionStringObjectMap = new HashMap<>();
                 XML xml = new XML();
                 if (xsDataType.getName() != null && StringUtils.isNotBlank(xsDataType.getName().getNamespaceURI())) {
                     xml.setNamespace(xsDataType.getName().getNamespaceURI());
                     xml.setPrefix(xsDataType.getName().getPrefix());
                 }
-                extensionStringObjectMap.put("x-namespace-qualified", false);
+                extensionStringObjectMap.put(SOAPToRESTConstants.X_NAMESPACE_QUALIFIED, isElementFormDefaultQualified);
                 schema.setXml(xml);
                 schema.setExtensions(extensionStringObjectMap);
             }
             if (xsDataType.getChoice() != null) {
-                processXSChoice(xsDataType.getChoice(), schema);
+                processXSChoice(xsDataType.getChoice(), schema, isElementFormDefaultQualified);
             }
             if (xsDataType.getGroup() != null) {
-                processXSGroup(xsDataType.getGroup(), schema);
+                processXSGroup(xsDataType.getGroup(), schema, isElementFormDefaultQualified);
             }
         }
         return schema;
     }
 
-    private static void processXSSequence(XSSequence xsSequence, Schema<?> parentSchema) {
+    private static void processXSSequence(XSSequence xsSequence, Schema<?> parentSchema, boolean isElementFormDefaultQualified) {
 
         if (xsSequence.getElementList() != null) {
             List<XSElement> xsElementList = xsSequence.getElementList();
             for (XSElement xsElement : xsElementList) {
-                Schema<?> innerSchema = getSchemaForXSElement(xsElement);
+                Schema<?> innerSchema = getSchemaForXSElement(xsElement, isElementFormDefaultQualified);
                 if (innerSchema != null) {
                     parentSchema.addProperties(innerSchema.getName(), innerSchema);
                 }
@@ -271,52 +271,52 @@ public class OASGenerator {
         }
         if (xsSequence.getSequenceList() != null) {
             for (XSSequence innerXSequence : xsSequence.getSequenceList()) {
-                processXSSequence(innerXSequence, parentSchema);
+                processXSSequence(innerXSequence, parentSchema, isElementFormDefaultQualified);
             }
         }
         if (xsSequence.getChoiceList() != null) {
             List<XSChoice> xsChoiceList = xsSequence.getChoiceList();
             for (XSChoice xsChoice : xsChoiceList) {
-                processXSChoice(xsChoice, parentSchema);
+                processXSChoice(xsChoice, parentSchema, isElementFormDefaultQualified);
             }
         }
     }
 
-    private static void processXSChoice(XSChoice xsChoice, Schema<?> parentSchema) {
+    private static void processXSChoice(XSChoice xsChoice, Schema<?> parentSchema, boolean isElementFormDefaultQualified) {
 
         if (xsChoice.getSequenceList() != null) {
             for (XSSequence xsSequence : xsChoice.getSequenceList()) {
-                processXSSequence(xsSequence, parentSchema);
+                processXSSequence(xsSequence, parentSchema, isElementFormDefaultQualified);
             }
         }
         if (xsChoice.getChoiceList() != null) {
             for (XSChoice innerXsChoice : xsChoice.getChoiceList()) {
-                processXSChoice(innerXsChoice, parentSchema);
+                processXSChoice(innerXsChoice, parentSchema, isElementFormDefaultQualified);
             }
         }
         if (xsChoice.getGroupsList() != null) {
             for (XSGroup xsGroup : xsChoice.getGroupsList()) {
-                processXSGroup(xsGroup, parentSchema);
+                processXSGroup(xsGroup, parentSchema, isElementFormDefaultQualified);
             }
         }
         if (xsChoice.getElementList() != null) {
             for (XSElement xsElement : xsChoice.getElementList()) {
-                Schema<?> innerSchema = getSchemaForXSElement(xsElement);
+                Schema<?> innerSchema = getSchemaForXSElement(xsElement, isElementFormDefaultQualified);
                 parentSchema.addProperties(innerSchema.getName(), innerSchema);
             }
         }
     }
 
-    private static void processXSGroup(XSGroup xsGroup, Schema<?> parentSchema) {
+    private static void processXSGroup(XSGroup xsGroup, Schema<?> parentSchema, boolean isElementFormDefaultQualified) {
 
         if (xsGroup.getChoiceList() != null) {
             for (XSChoice xsChoice : xsGroup.getChoiceList()) {
-                processXSChoice(xsChoice, parentSchema);
+                processXSChoice(xsChoice, parentSchema, isElementFormDefaultQualified);
             }
         }
         if (xsGroup.getSequenceList() != null) {
             for (XSSequence xsSequence : xsGroup.getSequenceList()) {
-                processXSSequence(xsSequence, parentSchema);
+                processXSSequence(xsSequence, parentSchema, isElementFormDefaultQualified);
             }
         }
         if (xsGroup.getRefKey() != null) {
@@ -324,7 +324,7 @@ public class OASGenerator {
         }
     }
 
-    private static Schema<?> getSchemaForXSElement(XSElement xsElement) {
+    private static Schema<?> getSchemaForXSElement(XSElement xsElement, boolean isElementFormDefaultQualified) {
 
         Schema<?> schema = null;
         if (xsElement.getType() != null) {
@@ -343,7 +343,8 @@ public class OASGenerator {
             schema.setName(xsElement.getRefKey().getLocalPart().replaceAll("\\s+", ""));
             schema.$ref(SOAPToRESTConstants.OAS_DEFINITIONS_PREFIX + xsElement.getRefKey().getLocalPart());
         } else if (xsElement.getInlineComplexType() != null) {
-            schema = getSchemaForXSDataType(xsElement.getInlineComplexType(), xsElement.getName().getLocalPart().replaceAll("\\s+", ""));
+            schema = getSchemaForXSDataType(xsElement.getInlineComplexType(),
+                    xsElement.getName().getLocalPart().replaceAll("\\s+", ""), isElementFormDefaultQualified);
         }
         return schema;
     }

@@ -28,6 +28,9 @@ public class SOAPToRESTConstants {
     public static final String SOAP11_NAMESPACE = "http://schemas.xmlsoap.org/soap/envelope/";
     public static final String SOAP12_NAMESPACE = "http://www.w3.org/2003/05/soap-envelope";
     public static final String X_NAMESPACE_QUALIFIED = "x-namespace-qualified";
+
+    public static final String QUALIFIED = "qualified";
+    public static final String ROOT_ELEMENT_PREFIX = "rootElement_";
     public static final String XMLNS = "xmlns";
     public static final String X_WSO2_UNIQUE_NAMESPACE = "x-wso2-empty-namespace";
     public static final String BASE_CONTENT_KEYWORD = "_base";

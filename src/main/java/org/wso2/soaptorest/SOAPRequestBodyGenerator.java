@@ -190,6 +190,12 @@ public class SOAPRequestBodyGenerator {
                         parameterTreeNode = parameterTreeNode.replace("[0]", "");
                     }
                     Schema<?> schema = openAPI.getComponents().getSchemas().get(parameterTreeNode);
+                    // Since we add the elements defined in the root XSD with the 'rootElement_' prefix, we need to
+                    // check for the schema with the prefix if the schema is not found.
+                    if (schema == null) {
+                        schema = openAPI.getComponents().getSchemas()
+                                .get(SOAPToRESTConstants.ROOT_ELEMENT_PREFIX + parameterTreeNode);
+                    }
                     if (schema != null) {
                         Map<String, Object> vendorExtensions = schema.getExtensions();
                         if (vendorExtensions != null && vendorExtensions.get(SOAPToRESTConstants.X_NAMESPACE_QUALIFIED) != null
