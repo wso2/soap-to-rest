@@ -68,4 +68,10 @@ public class SOAPToRESTConstants {
     public static final String OAS_ALL_MEDIA_TYPE = "*/*";
     public static final String OBJECT_TYPE = "object";
     public static final String ARRAY_TYPE = "array";
+    public static final String IF_PLACEHOLDER = "ifPlaceholder";
+    public static final String ELSE_PLACEHOLDER = "elsePlaceholder";
+    public static final String QUESTION_MARK_PLACEHOLDER = "questionPlaceholder";
+    public static final String ATTRIBUTE_PLACEHOLDER = "attributePlaceholder";
+    public static final String IS_EMPTY_ATTRIBUTE = "addIsEmptyCheck";
+
 }

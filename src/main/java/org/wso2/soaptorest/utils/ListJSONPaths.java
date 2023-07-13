@@ -17,6 +17,7 @@
  */
 package org.wso2.soaptorest.utils;
 
+import io.swagger.v3.oas.models.OpenAPI;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -96,11 +97,10 @@ public class ListJSONPaths {
      * @param example example object
      * @return the arraylist of the available json paths
      */
-    public static ArrayList<String> getJsonPathsFromExample(Example example) {
-
+    public static ArrayList<String> getJsonPathsFromExample(Example example, Map<String, String> jsonPathSchemaMapping) {
         ArrayList<String> pathList = new ArrayList<>();
         if (example != null) {
-            listExamples("", example, pathList);
+            listExamples("", example, pathList, jsonPathSchemaMapping);
         }
         return pathList;
     }
@@ -112,14 +112,18 @@ public class ListJSONPaths {
      * @param parameterJsonPathMapping list of json paths
      * @return the arraylist of the available json paths
      */
-    public static void listExamples(String parent, Example example, ArrayList<String> parameterJsonPathMapping) {
+    public static void listExamples(String parent, Example example, ArrayList<String> parameterJsonPathMapping
+    , Map<String, String> jsonPathSchemaMapping) {
         if (example != null) {
             if (SOAPToRESTConstants.OBJECT_TYPE.equals(example.getTypeName())) {
                 Map<String, Example> values = ((ObjectExample) example).getValues();
                 if (values != null) {
                     for (Map.Entry<String, Example> entry : values.entrySet()) {
                         String childKey = parent.isEmpty() ? entry.getKey() : parent + "." + entry.getKey();
-                        listExamples(childKey, entry.getValue(), parameterJsonPathMapping);
+                        if (entry.getValue() != null && entry.getValue().getName() != null) {
+                            jsonPathSchemaMapping.put(entry.getKey(), entry.getValue().getName());
+                        }
+                        listExamples(childKey, entry.getValue(), parameterJsonPathMapping, jsonPathSchemaMapping);
                     }
                 } else if (StringUtils.isNotBlank(parent)) {
                     parameterJsonPathMapping.add(parent);
@@ -132,9 +136,9 @@ public class ListJSONPaths {
                         Example exampleItem = exampleArray.get(i);
                         jsonPath = parent + "[" + i + "]";
                         if (SOAPToRESTConstants.OBJECT_TYPE.equals(exampleItem.getTypeName())) {
-                            listExamples(jsonPath, exampleItem, parameterJsonPathMapping);
+                            listExamples(jsonPath, exampleItem, parameterJsonPathMapping, jsonPathSchemaMapping);
                         } else if (SOAPToRESTConstants.ARRAY_TYPE.equals(exampleItem.getTypeName())) {
-                            listExamples(jsonPath, exampleItem, parameterJsonPathMapping);
+                            listExamples(jsonPath, exampleItem, parameterJsonPathMapping, jsonPathSchemaMapping);
                         } else {
                             parameterJsonPathMapping.add(jsonPath);
                         }

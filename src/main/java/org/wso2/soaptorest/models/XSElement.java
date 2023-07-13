@@ -27,6 +27,7 @@ public class XSElement {
     QName name;
     QName type;
     QName refKey;
+    boolean isOptional;
     XSDataType inlineComplexType;
     boolean isArray;
 
@@ -76,5 +77,13 @@ public class XSElement {
 
     public void setArray(boolean array) {
         isArray = array;
+    }
+
+    public boolean isOptional() {
+        return isOptional;
+    }
+
+    public void setOptional(boolean optional) {
+        isOptional = optional;
     }
 }

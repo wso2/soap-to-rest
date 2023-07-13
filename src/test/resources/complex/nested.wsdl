@@ -11,10 +11,10 @@
         </xsd:schema>
     </types>
     <message name="inputMessage">
-        <part name="parameters" element="tns:inputModel"/>
+        <part name="parameters" element="tns:inputModelBla"/>
     </message>
     <message name="outputMessage">
-        <part name="parameters" element="tns:outputModel"/>
+        <part name="parameters" element="tns:outputModelBla"/>
     </message>
     <portType name="nestedSample">
         <operation name="inputOperation">

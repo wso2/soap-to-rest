@@ -30,6 +30,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -99,5 +100,15 @@ class ComplexWSDLTestCase {
         assertEquals(soaPtoRESTConversionData.getAllSOAPRequestBodies().size(), 1);
         assertEquals(soaPtoRESTConversionData.getSoapService(), "choiceSampleService");
         assertEquals(soaPtoRESTConversionData.getSoapPort(), "choiceSamplePort");
+    }
+
+    @Test
+    void testWSDLWithOptional() throws SOAPToRESTException {
+        SOAPtoRESTConversionData soaPtoRESTConversionData = SOAPToRESTConverter.getSOAPtoRESTConversionData(
+                "src/test/resources" + "/complex/nested.wsdl", "Test API", "1.0.0");
+        List requiredValues = soaPtoRESTConversionData.getOpenAPI().getComponents()
+                .getSchemas().get("innerType2").getRequired();
+        assertTrue(requiredValues.contains("inner3"));
+        assertTrue(requiredValues.contains("int3"));
     }
 }

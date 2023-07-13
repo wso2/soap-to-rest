@@ -211,6 +211,9 @@ public class WSDLProcessor {
         } else {
             log.warn("Data type for the child element " + xmlSchemaElement.getName() + "did " + "not processed");
         }
+        if (xmlSchemaElement.getMinOccurs() == 0) {
+            xsElement.setOptional(true);
+        }
         return xsElement;
     }
 

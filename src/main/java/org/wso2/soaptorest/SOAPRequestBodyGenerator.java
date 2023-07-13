@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.wso2.soaptorest.exceptions.SOAPToRESTException;
 import org.wso2.soaptorest.models.SOAPRequestElement;
 import org.wso2.soaptorest.models.SOAPtoRESTConversionData;
@@ -50,6 +51,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.soaptorest.utils.SOAPToRESTConstants.ATTRIBUTE_PLACEHOLDER;
+import static org.wso2.soaptorest.utils.SOAPToRESTConstants.IF_PLACEHOLDER;
+import static org.wso2.soaptorest.utils.SOAPToRESTConstants.IS_EMPTY_ATTRIBUTE;
+import static org.wso2.soaptorest.utils.SOAPToRESTConstants.QUESTION_MARK_PLACEHOLDER;
 
 /**
  * Class that reads OpenAPI and generate soap request payloads
@@ -116,6 +122,7 @@ public class SOAPRequestBodyGenerator {
                 }
 
                 List<Parameter> parameters = operation.getParameters();
+                Map<String,String> jsonPathAndSchemaMap = new HashMap<>();
                 if (parameters != null) {
                     for (Parameter parameter : parameters) {
                         String name = parameter.getName();
@@ -131,7 +138,7 @@ public class SOAPRequestBodyGenerator {
                                 operation.getRequestBody().getContent().get(SOAPToRESTConstants.
                                         DEFAULT_CONTENT_TYPE).getSchema();
                         Example example = ExampleBuilder.fromSchema(model, openAPI.getComponents().getSchemas());
-                        parameterJsonPathMapping = ListJSONPaths.getJsonPathsFromExample(example);
+                        parameterJsonPathMapping = ListJSONPaths.getJsonPathsFromExample(example, jsonPathAndSchemaMap);
                     } catch (Exception e) {
                         throw new SOAPToRESTException("Cannot generate JSON body from the OpenAPI", e);
                     }
@@ -139,8 +146,9 @@ public class SOAPRequestBodyGenerator {
                 }
 
                 Document soapRequestBody = createSOAPRequestXMLForOperation(parameterJsonPathMapping, queryParameters,
-                        namespace, operationId, openAPI);
+                        namespace, operationId, openAPI, jsonPathAndSchemaMap );
 
+                iterateChildNodes(soapRequestBody.getDocumentElement(), soapRequestBody);
                 requestBodies.put(operationId, new SOAPRequestElement(soapRequestBody, soapAction, namespace,
                         soapNamespace));
             }
@@ -148,9 +156,59 @@ public class SOAPRequestBodyGenerator {
         return new SOAPtoRESTConversionData(openAPI, requestBodies, soapService, soapPort);
     }
 
+    /**
+     * Iterate through the given document and wrap the possible empty elements with <#if> statements.
+     * @param node      Current node
+     * @param document  Root document
+     */
+    private static void iterateChildNodes(Node node, Document document) {
+        // Get the child nodes of the current node
+        NodeList childNodes = node.getChildNodes();
+
+        // Iterate over the child nodes
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            Node childNode = childNodes.item(i);
+
+            // Check if the element has the attribute "addIsEmptyCheck" with value "true"
+            if (childNode instanceof Element) {
+                Element element = (Element) childNode;
+                if (element.hasAttribute(IS_EMPTY_ATTRIBUTE) &&
+                        element.getAttribute(IS_EMPTY_ATTRIBUTE).equals("true")) {
+                    // Create a new element <#if>
+                    String value = element.getTextContent();
+                    String nodeValue = element.getNodeName();
+                    Element nextSibling = (Element) element.getNextSibling();
+
+                    // copy the element without attributes
+                    Element modified = document.createElement(nodeValue);
+                    modified.setTextContent(value);
+
+                    Element newElement = document.createElement(IF_PLACEHOLDER);
+                    // remove ${} from the value and append has_content check
+                    newElement.setAttribute(ATTRIBUTE_PLACEHOLDER, value.substring(2,value.length()-1) +
+                            QUESTION_MARK_PLACEHOLDER + "has_content");
+                    newElement.appendChild(modified);
+
+                    Node parentNode = element.getParentNode();
+                    parentNode.removeChild(element);
+                    if (nextSibling == null) {
+                        parentNode.appendChild(newElement);
+                    } else {
+                        parentNode.insertBefore(newElement, nextSibling);
+                    }
+                    iterateChildNodes(newElement, document);
+                }
+            }
+
+            // Recursively iterate child nodes of non-matched elements
+            if (childNode instanceof Element && !childNode.getNodeName().equals(IF_PLACEHOLDER)) {
+                iterateChildNodes(childNode, document);
+            }
+        }
+    }
     private static Document createSOAPRequestXMLForOperation(ArrayList<String> parameterJsonPathMapping, Map<String,
-            String> queryPathParamMapping, String namespace, String operationId, OpenAPI openAPI) throws
-            SOAPToRESTException {
+            String> queryPathParamMapping, String namespace, String operationId, OpenAPI openAPI,
+            Map<String,String> jsonPathAndSchemaMap) throws SOAPToRESTException {
 
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder;
@@ -204,6 +262,21 @@ public class SOAPRequestBodyGenerator {
                             isNamespaceQualified = true;
                         }
                     }
+                    Schema<?> parentSchema = null;
+                    boolean needIsEmptyCheck = false;
+                    // Check parent schema for required fields and wrap with isEmpty check if required
+                    if (prevElement != null) {
+                        String parentElementName = prevElement.getNodeName();
+                        if (parentElementName.contains(SOAPToRESTConstants.NAMESPACE_SEPARATOR)) {
+                            parentElementName = parentElementName.split(SOAPToRESTConstants.NAMESPACE_SEPARATOR)[1];
+                        }
+                        parentSchema = openAPI.getComponents().getSchemas().get(jsonPathAndSchemaMap.get(parentElementName));
+                        if (parentSchema != null && parentSchema.getRequired() != null &&
+                                !parentSchema.getRequired().contains(parameterTreeNode)) {
+                            needIsEmptyCheck = true;
+                        }
+                    }
+
                     String payloadPrefix = "${";
                     if (StringUtils.isNotBlank(parameterTreeNode)) {
                         if (SOAPToRESTConstants.ATTR_CONTENT_KEYWORD.equalsIgnoreCase(parameterTreeNode)) {
@@ -254,6 +327,9 @@ public class SOAPRequestBodyGenerator {
                         } else {
                             if (elemPos == length - 1) {
                                 element.setTextContent(payloadPrefix + currentJSONPath + "}");
+                            }
+                            if (needIsEmptyCheck) {
+                                element.setAttribute(IS_EMPTY_ATTRIBUTE, "true");
                             }
                             if (prevElement != null) {
                                 prevElement.appendChild(element);
