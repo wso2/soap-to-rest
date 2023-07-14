@@ -62,4 +62,8 @@ public class SOAPtoRESTConversionData {
 
         return soapPort;
     }
+
+    public OpenAPI getOpenAPI() {
+        return openAPI;
+    }
 }

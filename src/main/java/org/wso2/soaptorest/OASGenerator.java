@@ -30,6 +30,7 @@ import org.wso2.soaptorest.models.*;
 import org.wso2.soaptorest.utils.SOAPToRESTConstants;
 
 import javax.xml.namespace.QName;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -265,6 +266,15 @@ public class OASGenerator {
             for (XSElement xsElement : xsElementList) {
                 Schema<?> innerSchema = getSchemaForXSElement(xsElement, isElementFormDefaultQualified);
                 if (innerSchema != null) {
+                    // if element is not optional, add it to the required list of parent schema
+                    boolean isRef = xsElement.getRefKey() != null && xsElement.getName() == null;
+                    if (!xsElement.isOptional() && !isRef) {
+                        if (parentSchema.getRequired() != null) {
+                            parentSchema.getRequired().add(xsElement.getName().getLocalPart());
+                        } else {
+                            parentSchema.setRequired(Arrays.asList(xsElement.getName().getLocalPart()));
+                        }
+                    }
                     parentSchema.addProperties(innerSchema.getName(), innerSchema);
                 }
             }
