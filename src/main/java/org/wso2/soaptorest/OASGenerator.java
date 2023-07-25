@@ -266,6 +266,7 @@ public class OASGenerator {
             for (XSElement xsElement : xsElementList) {
                 Schema<?> innerSchema = getSchemaForXSElement(xsElement, isElementFormDefaultQualified);
                 if (innerSchema != null) {
+                    parentSchema.addProperties(innerSchema.getName(), innerSchema);
                     // if element is not optional, add it to the required list of parent schema
                     boolean isRef = xsElement.getRefKey() != null && xsElement.getName() == null;
                     if (!xsElement.isOptional() && !isRef) {
@@ -275,7 +276,6 @@ public class OASGenerator {
                             parentSchema.setRequired(Arrays.asList(xsElement.getName().getLocalPart()));
                         }
                     }
-                    parentSchema.addProperties(innerSchema.getName(), innerSchema);
                 }
             }
         }

@@ -26,9 +26,31 @@
 
     <xs:complexType name="innerType2">
         <xs:sequence>
-            <xs:element name="inner3" type="tns:innerType3"/>
+            <xs:element name="inner3" type="tns:FCUBS_HEADERType"/>
             <xs:element name="int3" type="xs:int"/>
             <xs:element minOccurs="0" name="languageCode" type="tns:languageCode"/>
+        </xs:sequence>
+    </xs:complexType>
+
+
+    <xs:complexType name="FCUBS_HEADERType">
+        <xs:sequence>
+            <xs:element name="SNAPSHOTID" type="xs:string" minOccurs="0"/>
+            <xs:element name="PASSWORD" type="xs:string"/>
+            <xs:element name="ADDL" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="PARAM" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="NAME" type="xs:string"/>
+                                    <xs:element name="VALUE" type="xs:string"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
         </xs:sequence>
     </xs:complexType>
 

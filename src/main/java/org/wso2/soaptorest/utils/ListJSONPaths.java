@@ -121,7 +121,7 @@ public class ListJSONPaths {
                     for (Map.Entry<String, Example> entry : values.entrySet()) {
                         String childKey = parent.isEmpty() ? entry.getKey() : parent + "." + entry.getKey();
                         if (entry.getValue() != null && entry.getValue().getName() != null) {
-                            jsonPathSchemaMapping.put(entry.getKey(), entry.getValue().getName());
+                            jsonPathSchemaMapping.put(childKey, entry.getValue().getName());
                         }
                         listExamples(childKey, entry.getValue(), parameterJsonPathMapping, jsonPathSchemaMapping);
                     }

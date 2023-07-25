@@ -73,5 +73,6 @@ public class SOAPToRESTConstants {
     public static final String QUESTION_MARK_PLACEHOLDER = "questionPlaceholder";
     public static final String ATTRIBUTE_PLACEHOLDER = "attributePlaceholder";
     public static final String IS_EMPTY_ATTRIBUTE = "addIsEmptyCheck";
+    public static final String VALUE_ATTRIBUTE = "valueAttribute";
 
 }

@@ -106,9 +106,13 @@ class ComplexWSDLTestCase {
     void testWSDLWithOptional() throws SOAPToRESTException {
         SOAPtoRESTConversionData soaPtoRESTConversionData = SOAPToRESTConverter.getSOAPtoRESTConversionData(
                 "src/test/resources" + "/complex/nested.wsdl", "Test API", "1.0.0");
+        Set<Map.Entry<String, SOAPRequestElement>> soapElementEntry = soaPtoRESTConversionData.getAllSOAPRequestBodies();
         List requiredValues = soaPtoRESTConversionData.getOpenAPI().getComponents()
                 .getSchemas().get("innerType2").getRequired();
         assertTrue(requiredValues.contains("inner3"));
         assertTrue(requiredValues.contains("int3"));
+        requiredValues = soaPtoRESTConversionData.getOpenAPI().getComponents().getSchemas()
+                .get("FCUBS_HEADERType").getRequired();
+        assertTrue(requiredValues.get(0).equals("PASSWORD"));
     }
 }
