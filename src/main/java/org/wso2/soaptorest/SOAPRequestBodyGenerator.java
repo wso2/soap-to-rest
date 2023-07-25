@@ -56,6 +56,7 @@ import static org.wso2.soaptorest.utils.SOAPToRESTConstants.ATTRIBUTE_PLACEHOLDE
 import static org.wso2.soaptorest.utils.SOAPToRESTConstants.IF_PLACEHOLDER;
 import static org.wso2.soaptorest.utils.SOAPToRESTConstants.IS_EMPTY_ATTRIBUTE;
 import static org.wso2.soaptorest.utils.SOAPToRESTConstants.QUESTION_MARK_PLACEHOLDER;
+import static org.wso2.soaptorest.utils.SOAPToRESTConstants.VALUE_ATTRIBUTE;
 
 /**
  * Class that reads OpenAPI and generate soap request payloads
@@ -88,6 +89,7 @@ public class SOAPRequestBodyGenerator {
         SimpleModule simpleModule = new SimpleModule().addSerializer(new JsonNodeExampleSerializer());
         Json.mapper().registerModule(simpleModule);
         Yaml.mapper().registerModule(simpleModule);
+        Map<String,String> jsonPathAndSchemaMap = new HashMap<>();
 
         for (String pathName : paths.keySet()) {
             PathItem path = paths.get(pathName);
@@ -122,7 +124,7 @@ public class SOAPRequestBodyGenerator {
                 }
 
                 List<Parameter> parameters = operation.getParameters();
-                Map<String,String> jsonPathAndSchemaMap = new HashMap<>();
+
                 if (parameters != null) {
                     for (Parameter parameter : parameters) {
                         String name = parameter.getName();
@@ -175,33 +177,32 @@ public class SOAPRequestBodyGenerator {
                 if (element.hasAttribute(IS_EMPTY_ATTRIBUTE) &&
                         element.getAttribute(IS_EMPTY_ATTRIBUTE).equals("true")) {
                     // Create a new element <#if>
-                    String value = element.getTextContent();
-                    String nodeValue = element.getNodeName();
-                    Element nextSibling = (Element) element.getNextSibling();
-
-                    // copy the element without attributes
-                    Element modified = document.createElement(nodeValue);
-                    modified.setTextContent(value);
+                    String value = null;
+                    if (element.hasAttribute(VALUE_ATTRIBUTE)) {
+                        String nodeName = element.getNodeName();
+                        // remove namespace from the node name
+                        if (nodeName.contains(":")) {
+                            nodeName = nodeName.split(":")[1];
+                        }
+                        value = "${payload." + element.getAttribute(VALUE_ATTRIBUTE) + "." + nodeName + "}";
+                        element.removeAttribute(VALUE_ATTRIBUTE);
+                    }
+                    element.removeAttribute(IS_EMPTY_ATTRIBUTE);
 
                     Element newElement = document.createElement(IF_PLACEHOLDER);
                     // remove ${} from the value and append has_content check
-                    newElement.setAttribute(ATTRIBUTE_PLACEHOLDER, value.substring(2,value.length()-1) +
+                    newElement.setAttribute(ATTRIBUTE_PLACEHOLDER, value.substring(2, value.length() - 1) +
                             QUESTION_MARK_PLACEHOLDER + "has_content");
-                    newElement.appendChild(modified);
 
                     Node parentNode = element.getParentNode();
-                    parentNode.removeChild(element);
-                    if (nextSibling == null) {
-                        parentNode.appendChild(newElement);
-                    } else {
-                        parentNode.insertBefore(newElement, nextSibling);
-                    }
-                    iterateChildNodes(newElement, document);
-                }
-            }
+                    parentNode.replaceChild(newElement, element);
+                    newElement.appendChild(element);
 
-            // Recursively iterate child nodes of non-matched elements
-            if (childNode instanceof Element && !childNode.getNodeName().equals(IF_PLACEHOLDER)) {
+                    iterateChildNodes(newElement, document);
+                } else {
+                    iterateChildNodes(element, document);
+                }
+            } else {
                 iterateChildNodes(childNode, document);
             }
         }
@@ -266,11 +267,13 @@ public class SOAPRequestBodyGenerator {
                     boolean needIsEmptyCheck = false;
                     // Check parent schema for required fields and wrap with isEmpty check if required
                     if (prevElement != null) {
-                        String parentElementName = prevElement.getNodeName();
-                        if (parentElementName.contains(SOAPToRESTConstants.NAMESPACE_SEPARATOR)) {
-                            parentElementName = parentElementName.split(SOAPToRESTConstants.NAMESPACE_SEPARATOR)[1];
+                        String mapKey = parameterTreeNode;
+                        // payload. is 8 characters long
+                        if (currentJSONPath.length() > 8 + parameterTreeNode.length()) {
+                            mapKey = currentJSONPath.substring(8, currentJSONPath.length()
+                                    - parameterTreeNode.length() - 1);
                         }
-                        parentSchema = openAPI.getComponents().getSchemas().get(jsonPathAndSchemaMap.get(parentElementName));
+                        parentSchema = openAPI.getComponents().getSchemas().get(jsonPathAndSchemaMap.get(mapKey));
                         if (parentSchema != null && parentSchema.getRequired() != null &&
                                 !parentSchema.getRequired().contains(parameterTreeNode)) {
                             needIsEmptyCheck = true;
@@ -329,7 +332,12 @@ public class SOAPRequestBodyGenerator {
                                 element.setTextContent(payloadPrefix + currentJSONPath + "}");
                             }
                             if (needIsEmptyCheck) {
+                                String path = "";
+                                for (int j = 0; j < i; j++) {
+                                    path = path.concat(parameterTreeNodes[j]).concat(".");
+                                }
                                 element.setAttribute(IS_EMPTY_ATTRIBUTE, "true");
+                                element.setAttribute(VALUE_ATTRIBUTE, path.substring(0, path.length() - 1));
                             }
                             if (prevElement != null) {
                                 prevElement.appendChild(element);
