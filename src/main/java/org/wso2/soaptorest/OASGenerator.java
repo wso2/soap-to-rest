@@ -268,8 +268,7 @@ public class OASGenerator {
                 if (innerSchema != null) {
                     parentSchema.addProperties(innerSchema.getName(), innerSchema);
                     // if element is not optional, add it to the required list of parent schema
-                    boolean isRef = xsElement.getRefKey() != null && xsElement.getName() == null;
-                    if (!xsElement.isOptional() && !isRef) {
+                    if (!xsElement.isOptional() && xsElement.getName() != null) {
                         if (parentSchema.getRequired() != null) {
                             parentSchema.getRequired().add(xsElement.getName().getLocalPart());
                         } else {

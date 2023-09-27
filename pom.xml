@@ -6,7 +6,7 @@
 
     <groupId>org.wso2</groupId>
     <artifactId>soaptorest</artifactId>
-    <version>1.5</version>
+    <version>1.6</version>
 
     <dependencies>
         <dependency>
