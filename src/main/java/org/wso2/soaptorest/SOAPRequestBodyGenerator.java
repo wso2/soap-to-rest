@@ -239,11 +239,14 @@ public class SOAPRequestBodyGenerator {
                     isRootComplexType = true;
                 }
                 String currentJSONPath = "payload";
+                String notEscapedJSONPath = "payload";
                 for (int i = 0; i < length; i++) {
                     String parameterTreeNode = parameterTreeNodes[i];
                     boolean isArray = false;
                     currentJSONPath = currentJSONPath.isEmpty() ? escapeFreeMarkerTemplate(parameterTreeNode) :
                             currentJSONPath + "." + escapeFreeMarkerTemplate(parameterTreeNode);
+                    notEscapedJSONPath = notEscapedJSONPath.isEmpty() ? parameterTreeNode :
+                            notEscapedJSONPath + "." + parameterTreeNode;
                     if (parameterTreeNode.endsWith("[0]")) {
                         isArray = true;
                         parameterTreeNode = parameterTreeNode.replace("[0]", "");
@@ -269,13 +272,25 @@ public class SOAPRequestBodyGenerator {
                     if (prevElement != null) {
                         String mapKey = parameterTreeNode;
                         // payload. is 8 characters long
-                        if (currentJSONPath.length() > 8 + parameterTreeNode.length()) {
-                            mapKey = currentJSONPath.substring(8, currentJSONPath.length()
+                        if (notEscapedJSONPath.length() > 8 + parameterTreeNode.length()) {
+                            mapKey = notEscapedJSONPath.substring(8, notEscapedJSONPath.length()
                                     - parameterTreeNode.length() - 1);
                         }
                         parentSchema = openAPI.getComponents().getSchemas().get(jsonPathAndSchemaMap.get(mapKey));
-                        if (parentSchema != null && parentSchema.getRequired() != null &&
-                                !parentSchema.getRequired().contains(parameterTreeNode)) {
+                        if (parentSchema == null) {
+                            // check for the schema inside parent object's schema
+                            String parentKey = mapKey.substring(0, mapKey.lastIndexOf('.'));
+                            if (!StringUtils.isEmpty(parentKey)) {
+                                Schema<?> enclosingSchema = openAPI.getComponents().getSchemas()
+                                        .get(jsonPathAndSchemaMap.get(parentKey));
+                                if (enclosingSchema != null && enclosingSchema.getProperties() != null &&
+                                        enclosingSchema.getProperties().containsKey(prevElement.getLocalName())) {
+                                    parentSchema = enclosingSchema.getProperties().get(prevElement.getLocalName());
+                                }
+                            }
+                        }
+                        if (parentSchema != null && (parentSchema.getRequired() == null ||
+                                !parentSchema.getRequired().contains(parameterTreeNode))) {
                             needIsEmptyCheck = true;
                         }
                     }
@@ -334,7 +349,7 @@ public class SOAPRequestBodyGenerator {
                             if (needIsEmptyCheck) {
                                 String path = "";
                                 for (int j = 0; j < i; j++) {
-                                    path = path.concat(parameterTreeNodes[j]).concat(".");
+                                    path = path.concat(escapeFreeMarkerTemplate(parameterTreeNodes[j])).concat(".");
                                 }
                                 element.setAttribute(IS_EMPTY_ATTRIBUTE, "true");
                                 element.setAttribute(VALUE_ATTRIBUTE, path.substring(0, path.length() - 1));
