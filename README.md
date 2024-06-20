@@ -59,6 +59,17 @@ Document soapRequestBody;
 ``Document `` contains ```org.w3c.dom.Document``` of the Request message that need to send to the SOAP backend under
 ``soapAction``. This Document contains the message with the placeholders for JSON input
 
+## Run in Command-line
+
+Build the JAR with command ``mvn package``. Then you can generate a YAML output for any WSDL file like this:
+
+```
+java -jar target/soaptorest-1.6-jar-with-dependencies.jar src/test/resources/complex/nested.wsdl MyNestedRestAPI 1.6.2
+```
+
+After the jar file in the command, the 1st parameter (required) is the path to the WSDL file. The 2nd parameter is the REST API title (default WSDL file name), and the 3rd is the version number (default "1.0.0").
+
+
 ## License
 
 ```
