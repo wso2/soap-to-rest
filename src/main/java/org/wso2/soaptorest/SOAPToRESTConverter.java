@@ -23,14 +23,30 @@ import org.wso2.soaptorest.models.SOAPtoRESTConversionData;
 import org.wso2.soaptorest.models.WSDLInfo;
 import org.wso2.soaptorest.utils.SOAPOperationExtractingUtil;
 
+import java.io.File;
 import java.net.URL;
 
 public class SOAPToRESTConverter {
+
     public static SOAPtoRESTConversionData getSOAPtoRESTConversionData(URL url, String apiTitle, String apiVersion) throws
             SOAPToRESTException {
 
         WSDLProcessor wsdlProcessor = new WSDLProcessor();
         wsdlProcessor.init(url);
+        return getSOAPtoRESTConversionData(wsdlProcessor, apiTitle, apiVersion);
+    }
+
+    public static SOAPtoRESTConversionData getSOAPtoRESTConversionData(String filePath, String apiTitle,
+                                                                       String apiVersion) throws SOAPToRESTException {
+
+        WSDLProcessor wsdlProcessor = new WSDLProcessor();
+        wsdlProcessor.init(filePath);
+        return getSOAPtoRESTConversionData(wsdlProcessor, apiTitle, apiVersion);
+    }
+
+    public static SOAPtoRESTConversionData getSOAPtoRESTConversionData(
+        WSDLProcessor wsdlProcessor, String apiTitle, String apiVersion) throws SOAPToRESTException
+    {
         SOAPOperationExtractingUtil soapOperationExtractingUtil = new SOAPOperationExtractingUtil();
         WSDLInfo wsdlInfo = soapOperationExtractingUtil.getWsdlInfo(wsdlProcessor.getWsdlDefinition());
         OpenAPI openAPI = OASGenerator.generateOpenAPIFromWSDL(wsdlInfo, wsdlProcessor.xsdDataModels, apiTitle,
@@ -39,16 +55,23 @@ public class SOAPToRESTConverter {
                 wsdlInfo.getSoapPort());
     }
 
-    public static SOAPtoRESTConversionData getSOAPtoRESTConversionData(String filePath, String apiTitle,
-                                                                       String apiVersion) throws SOAPToRESTException {
+    public static void main(String[] args)
+    {
+        try {
+            String wsdlFile = args[0];
+            String apiTitle = args.length > 1 ? args[1] : (new File(wsdlFile)).getName();
+            String apiVersion = args.length > 2 ? args[2] : "1.0.0";
 
-        WSDLProcessor wsdlProcessor = new WSDLProcessor();
-        wsdlProcessor.init(filePath);
-        SOAPOperationExtractingUtil soapOperationExtractingUtil = new SOAPOperationExtractingUtil();
-        WSDLInfo wsdlInfo = soapOperationExtractingUtil.getWsdlInfo(wsdlProcessor.getWsdlDefinition());
-        OpenAPI openAPI = OASGenerator.generateOpenAPIFromWSDL(wsdlInfo, wsdlProcessor.xsdDataModels, apiTitle,
-                apiVersion);
-        return SOAPRequestBodyGenerator.generateSOAPtoRESTConversionObjectFromOAS(openAPI, wsdlInfo.getSoapService(),
-                wsdlInfo.getSoapPort());
+            SOAPtoRESTConversionData data = getSOAPtoRESTConversionData(wsdlFile, apiTitle, apiVersion);
+
+            System.out.println(data.getOASString());
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("Usage: java -jar soaptorest-1.6-jar-with-dependencies.jar " +
+                "{wsdl_file_path} [apiTitle] [apiVersion]");
+        }
+        catch (SOAPToRESTException e) {
+            e.printStackTrace();
+        }
     }
 }

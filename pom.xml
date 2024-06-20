@@ -91,6 +91,11 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <archive>
+                        <manifestEntries>
+                            <Main-Class>org.wso2.soaptorest.SOAPToRESTConverter</Main-Class>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
 
                 <executions>
