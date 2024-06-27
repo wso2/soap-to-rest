@@ -10,7 +10,7 @@
     </parent>
     <groupId>org.wso2</groupId>
     <artifactId>soaptorest</artifactId>
-    <version>1.6</version>
+    <version>1.6-SNAPSHOT</version>
     <scm>
         <connection>scm:git:https://github.com/wso2/soap-to-rest.git</connection>
         <url>https://github.com/wso2/soap-to-rest.git</url>
