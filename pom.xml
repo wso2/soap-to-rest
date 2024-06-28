@@ -8,13 +8,13 @@
     </parent>
     <groupId>org.wso2</groupId>
     <artifactId>soaptorest</artifactId>
-    <version>1.6</version>
+    <version>1.7-SNAPSHOT</version>
     <packaging>pom</packaging>
     <scm>
         <connection>scm:git:https://github.com/wso2/soap-to-rest.git</connection>
         <url>https://github.com/wso2/soap-to-rest.git</url>
         <developerConnection>scm:git:https://github.com/wso2/soap-to-rest.git</developerConnection>
-        <tag>v1.6</tag>
+        <tag>HEAD</tag>
     </scm>
     <dependencies>
         <dependency>
