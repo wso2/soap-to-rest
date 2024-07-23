@@ -81,9 +81,10 @@ public class WSDLProcessor {
         wsdlReader.setFeature(JAVAX_WSDL_VERBOSE_MODE, false);
         wsdlReader.setFeature(JAVAX_WSDL_IMPORT_DOCUMENTS, false);
         try {
-            String systemId = "";
-            if (path.lastIndexOf(File.separator) > 0) {
-                systemId = path.substring(0, path.lastIndexOf(File.separator));
+            File file = new File(path);
+            String systemId = file.getParent();
+            if (systemId == null) {
+                systemId = "";
             }
             wsdlDefinition = wsdlReader.readWSDL(systemId, WSDLProcessingUtil.getSecuredParsedDocumentFromPath(path, systemId));
             initializeModels(wsdlDefinition, systemId);
