@@ -132,13 +132,6 @@
             </plugin>
         </plugins>
     </build>
-    <distributionManagement>
-        <repository>
-            <id>nexus-releases</id>
-            <name>WSO2 Nexus Release Repository</name>
-            <url>https://maven.wso2.org/nexus/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
     <pluginRepositories>
         <pluginRepository>
             <id>wso2.releases</id>
