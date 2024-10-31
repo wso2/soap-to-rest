@@ -352,7 +352,11 @@ public class SOAPRequestBodyGenerator {
                                     path = path.concat(escapeFreeMarkerTemplate(parameterTreeNodes[j])).concat(".");
                                 }
                                 element.setAttribute(IS_EMPTY_ATTRIBUTE, "true");
-                                element.setAttribute(VALUE_ATTRIBUTE, path.substring(0, path.length() - 1));
+                                if (path.length() == 0) {
+                                    element.setAttribute(VALUE_ATTRIBUTE, "");
+                                } else {
+                                    element.setAttribute(VALUE_ATTRIBUTE, path.substring(0, path.length() - 1));
+                                }
                             }
                             if (prevElement != null) {
                                 prevElement.appendChild(element);

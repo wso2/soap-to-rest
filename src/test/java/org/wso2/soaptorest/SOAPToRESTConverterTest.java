@@ -54,4 +54,18 @@ class SOAPToRESTConverterTest {
 
     }
 
+    @Test
+    void testIssue28() throws MalformedURLException, SOAPToRESTException {
+
+        URL url = new URL(
+            "https://raw.githubusercontent.com/indika-dev/soap-to-rest/main/src/test/resources/issue-28/failing.wsdl");
+        SOAPtoRESTConversionData soaPtoRESTConversionData =
+            SOAPToRESTConverter.getSOAPtoRESTConversionData(url, "Test API", "1.0.0");
+        assertTrue(StringUtils.isNotBlank(soaPtoRESTConversionData.getOASString()));
+        assertEquals(1, soaPtoRESTConversionData.getAllSOAPRequestBodies().size());
+        assertEquals(soaPtoRESTConversionData.getSoapService(), "myServer");
+        assertEquals(soaPtoRESTConversionData.getSoapPort(), "myServerSOAP");
+
+    }
+
 }
