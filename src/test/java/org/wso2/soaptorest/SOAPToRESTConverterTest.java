@@ -58,7 +58,7 @@ class SOAPToRESTConverterTest {
     void testIssue28() throws MalformedURLException, SOAPToRESTException {
 
         URL url = new URL(
-            "https://raw.githubusercontent.com/indika-dev/soap-to-rest/main/src/test/resources/issue-28/failing.wsdl");
+            "https://raw.githubusercontent.com/wso2/soap-to-rest/main/src/test/resources/issue-28/failing.wsdl");
         SOAPtoRESTConversionData soaPtoRESTConversionData =
             SOAPToRESTConverter.getSOAPtoRESTConversionData(url, "Test API", "1.0.0");
         assertTrue(StringUtils.isNotBlank(soaPtoRESTConversionData.getOASString()));
